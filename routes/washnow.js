@@ -4,15 +4,28 @@ const auth = require('../middleware/check-auth');
 
 const washNowController = require('../controllers/washnow');
 
-router.use(auth.customerAuth);
+router.get(
+  '/sendWashRequest/:cid',
+  auth.customerAuth,
+  washNowController.sendWashRequest
+);
 
-router.get('/sendWashRequest/:cid', washNowController.sendWashRequest);
-
-router.use(auth.washerAuth);
+router.get('/washrequests', auth.washerAuth, washNowController.getWashRequests);
 
 router.get(
   '/respondWashRequest/:rid/:resp',
+  auth.washerAuth,
   washNowController.respondWashRequest
 );
+
+router.get(
+  '/startCarWash/:oid',
+  auth.washerAuth,
+  washNowController.startCarWash
+);
+
+router.get('/endCarWash/:oid', auth.washerAuth, washNowController.endCarWash);
+
+router.get('/getWashers', auth.adminAuth, washNowController.getWashers);
 
 module.exports = router;

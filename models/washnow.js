@@ -13,6 +13,9 @@ const washRequestSchema = new mongoose.Schema({
   requestApprovedWasher: {
     type: mongoose.Schema.Types.ObjectId,
   },
+  requestDeclinedWashers: [
+    { userId: { type: mongoose.Schema.Types.ObjectId } },
+  ],
 });
 
 const WashRequest = mongoose.model('WashRequest', washRequestSchema);

@@ -31,6 +31,7 @@ mongoose
     useUnifiedTopology: true,
     useCreateIndex: true,
     useNewUrlParser: true,
+    useFindAndModify: false,
   })
   .then(() => {
     app.listen(port, () => {
