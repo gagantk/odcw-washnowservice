@@ -49,7 +49,6 @@ exports.washerAuth = async (req, res, next) => {
       _id: req.params.rid,
       requestApproved: false,
     });
-    console.log(washRequest);
     req.washRequest = washRequest;
     req.userData = { userId: decodedToken._id, user: user };
     next();
@@ -76,12 +75,6 @@ exports.adminAuth = async (req, res, next) => {
     if (user.userType.toLowerCase() !== 'admin') {
       throw new Error('Authentication failed!');
     }
-    const washRequest = await WashRequest.findOne({
-      _id: req.params.rid,
-      requestApproved: false,
-    });
-    console.log(washRequest);
-    req.washRequest = washRequest;
     req.userData = { userId: decodedToken._id, user: user };
     next();
   } catch (err) {

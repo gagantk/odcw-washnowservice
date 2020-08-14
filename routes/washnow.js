@@ -28,4 +28,6 @@ router.get('/endCarWash/:oid', auth.washerAuth, washNowController.endCarWash);
 
 router.get('/getWashers', auth.adminAuth, washNowController.getWashers);
 
+router.get('/assignWasher', auth.adminAuth, washNowController.assignWasher);
+
 module.exports = router;

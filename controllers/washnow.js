@@ -10,16 +10,12 @@ exports.sendWashRequest = async (req, res, next) => {
     const carId = req.params.cid;
     const washPlan = req.query.washplan;
     const price = req.query.price;
-    console.log('Here');
-    console.log(washPlan);
-    console.log(req.body);
     const washRequest = new WashRequest({
       car: carId,
       requestApproved: false,
       requestDeclinedWashers: [],
     });
     await washRequest.save();
-    console.log(JSON.stringify({ car: carId }));
     const response = await fetch(`${process.env.ORDER_SERVICE}/add`, {
       method: 'POST',
       body: JSON.stringify({
@@ -54,7 +50,6 @@ exports.getWashRequests = async (req, res, next) => {
       path: 'car',
       model: Car,
     });
-    console.log(washRequests);
   } catch (err) {
     const error = new HttpError(
       'Fetching wash requests failed, please try again later.',
@@ -76,15 +71,11 @@ exports.respondWashRequest = async (req, res, next) => {
       return res.status(400).json({ message: 'Invalid wash request id' });
     }
     const userId = req.userData.userId;
-    console.log(req.washRequest);
     if (req.params.resp === 'approve') {
       const orderId = await Order.findOne({ washrequest: req.washRequest._id });
-      console.log('This');
-      console.log(orderId);
       req.washRequest.requestApproved = true;
       req.washRequest.requestApprovedWasher = userId;
       await req.washRequest.save();
-      console.log(req.userData.user);
       req.userData.user.orders.push(orderId);
       await req.userData.user.save();
       const response = await fetch(
@@ -118,7 +109,6 @@ exports.startCarWash = async (req, res, next) => {
   let order;
   try {
     order = await Order.findByIdAndUpdate(orderId, { status: 'In-Process' });
-    console.log(order);
   } catch (err) {
     const error = new HttpError(
       'Updating order failed, please try again later.',
@@ -135,7 +125,6 @@ exports.endCarWash = async (req, res, next) => {
   let order;
   try {
     order = await Order.findByIdAndUpdate(orderId, { status: 'Completed' });
-    console.log(order);
   } catch (err) {
     const error = new HttpError(
       'Updating order failed, please try again later.',
@@ -159,4 +148,35 @@ exports.getWashers = async (req, res, next) => {
   res.json({
     washers: washers.map((washer) => washer.toObject({ getters: true })),
   });
+};
+
+exports.assignWasher = async (req, res, next) => {
+  const washerId = req.query.washer;
+  const orderId = req.query.order;
+
+  let washRequest;
+  let order;
+  try {
+    order = await Order.findById(orderId);
+    washRequest = await WashRequest.findById(order.washrequest);
+    washRequest.requestApproved = true;
+    washRequest.requestApprovedWasher = washerId;
+    await washRequest.save();
+    const customer = await User.findById(order.customer);
+    customer.orders.push(orderId);
+    await customer.save();
+    await fetch(`${process.env.ORDER_SERVICE}/${orderId}`, {
+      method: 'PATCH',
+      body: JSON.stringify({ washer: washerId, status: 'Accepted' }),
+      headers: {
+        Authorization: req.headers.authorization,
+        'Content-Type': 'application/json',
+      },
+    });
+  } catch (err) {
+    const error = new HttpError('Assigning washer failed.', 500);
+    console.log(err);
+    return next(error);
+  }
+  res.json({ message: 'Request assigned to washer' });
 };

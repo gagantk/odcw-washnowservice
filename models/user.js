@@ -78,13 +78,9 @@ userSchema.methods.generateAuthToken = async function () {
 
 userSchema.statics.findByCredentials = async (email, password) => {
   const existingUser = await User.findOne({ email });
-  console.log(existingUser);
   if (!existingUser) {
-    console.log('Not found');
     throw new HttpError('Invalid credentials, could not log you in.', 403);
   }
-  console.log(password);
-  console.log(existingUser.password);
   const isValidPassword = await bcrypt.compare(password, existingUser.password);
   if (!isValidPassword) {
     throw new HttpError('Invalid credentials, could not log you in.', 403);
